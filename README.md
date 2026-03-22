@@ -129,7 +129,7 @@ SOPHIA derives each person's mobile notify service from their device_tracker ent
 | [SOPHIA Core](https://github.com/williasj/ha-sophia-core) | Shared LLM client, module registry, dashboard | Released |
 | [SOPHIA Climate](https://github.com/williasj/ha-sophia-climate) | AI-powered multi-zone HVAC control | Released |
 | [SOPHIA Systems](https://github.com/williasj/ha-sophia-systems) | Hardware telemetry (TrueNAS, GPU, BMC) | Released |
-| **SOPHIA Presence** | Family location tracking | **This module** |
+| [SOPHIA Presence](https://github.com/williasj/ha-sophia-presence) | Family location tracking | Released |
 
 ---
 
