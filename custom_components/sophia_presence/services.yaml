@@ -1,0 +1,174 @@
+# Services provided by SOPHIA Presence
+update_location:
+  name: Update Location
+  description: Manually update a person's location
+  fields:
+    person_id:
+      name: Person ID
+      description: ID of the person to update
+      required: true
+      example: "person_id"
+      selector:
+        text:
+    latitude:
+      name: Latitude
+      description: Latitude coordinate
+      required: true
+      selector:
+        number:
+          min: -90
+          max: 90
+          mode: box
+    longitude:
+      name: Longitude
+      description: Longitude coordinate
+      required: true
+      selector:
+        number:
+          min: -180
+          max: 180
+          mode: box
+
+add_person:
+  name: Add Person
+  description: Add a new person to track (requires reconfiguration)
+  fields:
+    name:
+      name: Person Name
+      description: Name of the person to add
+      required: true
+      example: "John Doe"
+      selector:
+        text:
+    device_tracker:
+      name: Device Tracker
+      description: Device tracker entity to use
+      required: true
+      selector:
+        entity:
+          domain: device_tracker
+
+remove_person:
+  name: Remove Person
+  description: Remove a person from tracking (requires reconfiguration)
+  fields:
+    person_id:
+      name: Person ID
+      description: ID of the person to remove
+      required: true
+      example: "person_id"
+      selector:
+        text:
+
+create_zone:
+  name: Create Zone
+  description: Create a new geofence zone
+  fields:
+    name:
+      name: Zone Name
+      description: Name for the zone
+      required: true
+      example: "Grandma's House"
+      selector:
+        text:
+    latitude:
+      name: Latitude
+      description: Zone center latitude
+      required: true
+      selector:
+        number:
+          min: -90
+          max: 90
+          mode: box
+    longitude:
+      name: Longitude
+      description: Zone center longitude
+      required: true
+      selector:
+        number:
+          min: -180
+          max: 180
+          mode: box
+    radius:
+      name: Radius
+      description: Zone radius
+      required: true
+      selector:
+        number:
+          min: 50
+          max: 1000
+          step: 10
+          unit_of_measurement: meters
+    icon:
+      name: Icon
+      description: Material Design Icon for the zone
+      selector:
+        icon:
+
+request_checkin:
+  name: Request Check-In
+  description: Request that a person check in
+  fields:
+    person_id:
+      name: Person ID
+      description: ID of the person to request check-in from
+      required: true
+      example: "person_id"
+      selector:
+        text:
+    message:
+      name: Message
+      description: Optional custom message for check-in request
+      example: "Please let us know you're okay"
+      selector:
+        text:
+
+trigger_sos:
+  name: Trigger SOS
+  description: Trigger an emergency SOS alert for a person
+  fields:
+    person_id:
+      name: Person ID
+      description: ID of the person triggering SOS
+      required: true
+      example: "person_id"
+      selector:
+        text:
+
+get_location_history:
+  name: Get Location History
+  description: Retrieve location history for a person
+  fields:
+    person_id:
+      name: Person ID
+      description: ID of the person
+      required: true
+      example: "person_id"
+      selector:
+        text:
+    hours:
+      name: Hours
+      description: Number of hours of history to retrieve
+      selector:
+        number:
+          min: 1
+          max: 168
+          unit_of_measurement: hours
+add_zone_from_location:
+  name: Add Zone from Location
+  description: Create a new HA zone at a person's current GPS location. Reads zone name from the dashboard text input if not provided directly.
+  fields:
+    person_id:
+      name: Person ID
+      description: ID of the person whose current location to use
+      required: false
+      example: "person_id"
+      selector:
+        text:
+    zone_name:
+      name: Zone Name
+      description: Name for the new zone (optional - reads from dashboard text input if blank)
+      required: false
+      example: "My Office"
+      selector:
+        text:

@@ -1,0 +1,7 @@
+{
+  "name": "SOPHIA Presence",
+  "description": "AI-powered family location tracking with geofencing, safety alerts, and pattern intelligence. Part of the SOPHIA ecosystem.",
+  "render_readme": true,
+  "homeassistant": "2024.4.0",
+  "iot_class": "local_polling"
+}

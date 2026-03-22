@@ -1,0 +1,107 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "SOPHIA Presence Setup",
+        "description": "{info}",
+        "data": {}
+      },
+      "tracking_method": {
+        "title": "Select Tracking Method",
+        "description": "{info}",
+        "data": {
+          "tracking_method": "Tracking Method"
+        }
+      },
+      "add_person": {
+        "title": "Add Person to Track",
+        "description": "{info}",
+        "data": {
+          "name": "Person Name",
+          "device_tracker": "Device Tracker Entity",
+          "activity_sensor": "Activity Sensor (Optional)",
+          "battery_sensor": "Battery Sensor (Optional)",
+          "avatar": "Avatar URL (Optional)",
+          "privacy_mode": "Enable Privacy Mode",
+          "enable_notifications": "Enable Notifications",
+          "work_location": "Work Location (Optional, e.g. My Workplace)",
+          "add_another": "Add Another Person"
+        }
+      },
+      "safety_features": {
+        "title": "Safety Features",
+        "description": "{info}",
+        "data": {
+          "crash_detection_enabled": "Enable Crash Detection",
+          "speed_alerts_enabled": "Enable Speed Alerts",
+          "speed_warning_threshold": "Speed Warning Threshold",
+          "speed_excessive_threshold": "Excessive Speed Threshold",
+          "low_battery_alerts_enabled": "Enable Low Battery Alerts",
+          "battery_alert_threshold": "Battery Alert Threshold"
+        }
+      },
+      "zone_management": {
+        "title": "Zone Management",
+        "description": "{info}",
+        "data": {
+          "home_zone": "Home Zone",
+          "use_ha_zones": "Use Home Assistant Zones",
+          "zone_notifications_enabled": "Enable Zone Notifications",
+          "zone_auto_suggest_enabled": "Auto-Suggest New Zones"
+        }
+      },
+      "advanced_settings": {
+        "title": "Advanced Settings",
+        "description": "{info}",
+        "data": {
+          "update_interval": "Update Interval",
+          "history_retention": "History Retention",
+          "ai_features_enabled": "Enable AI-Powered Features"
+        }
+      },
+      "ai_features": {
+        "title": "AI Features Selection",
+        "description": "{info}",
+        "data": {
+          "arrival_prediction": "Arrival Time Prediction",
+          "pattern_recognition": "Pattern Recognition",
+          "anomaly_detection": "Anomaly Detection",
+          "smart_notifications": "Smart Notifications"
+        }
+      },
+      "integration_options": {
+        "title": "Integration Options",
+        "description": "{info}",
+        "data": {
+          "fire_events": "Fire Events for Other SOPHIA Modules"
+        }
+      }
+    },
+    "error": {
+      "sophia_core_not_found": "SOPHIA Core is required but not found. Please install and configure SOPHIA Core first.",
+      "person_already_exists": "This person has already been added. Please select a different person.",
+      "person_required": "Please select a person entity to track.",
+      "person_not_found": "Selected person entity was not found. Please try again.",
+      "cannot_connect": "Unable to connect to the tracking service. Please check your configuration.",
+      "unknown": "An unexpected error occurred. Please try again."
+    },
+    "abort": {
+      "already_configured": "SOPHIA Presence is already configured.",
+      "single_instance_allowed": "Only one instance of SOPHIA Presence can be configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "SOPHIA Presence Options",
+        "description": "Modify SOPHIA Presence settings",
+        "data": {
+          "update_interval": "Update Interval",
+          "crash_detection_enabled": "Crash Detection",
+          "speed_alerts_enabled": "Speed Alerts",
+          "ai_features_enabled": "AI Features"
+        }
+      }
+    }
+  }
+}
