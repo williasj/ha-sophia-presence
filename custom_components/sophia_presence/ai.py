@@ -32,9 +32,6 @@ COLLECTION_TRIPS = "sophia_presence_trips"
 
 REQUIRED_COLLECTIONS = [COLLECTION_PATTERNS, COLLECTION_ZONES, COLLECTION_TRIPS]
 
-# Vector size for bge-large-en-v1.5
-VECTOR_SIZE = 1024
-
 # Minimum trips before anomaly detection is meaningful
 MIN_TRIP_HISTORY = 5
 
@@ -43,21 +40,18 @@ ANOMALY_CHECK_INTERVAL = 1800
 
 
 class PresenceAI:
-    """AI intelligence layer for SOPHIA Presence."""
+    """AI intelligence layer for SOPHIA Presence.
+
+    All interaction with Qdrant and TEI flows through the sophia_core
+    SophiaLLMClient public RAG API (rag_ensure_collection, rag_upsert,
+    rag_search, rag_embed, rag_purge_older_than). This module does not
+    import aiohttp, read qdrant_url/tei_url, or talk to those services
+    directly - that responsibility belongs entirely to sophia_core.
+    """
 
     def __init__(self, llm_client, coordinator) -> None:
         self._llm = llm_client
         self._coordinator = coordinator
-
-        # Resolve qdrant_url and tei_url from sophia_core config stored in hass.data
-        # SophiaLLMClient does not carry these - we pull from core config directly
-        core_config = {}
-        try:
-            core_config = coordinator.hass.data.get("sophia_core", {}).get("config", {})
-        except Exception:
-            pass
-        self._qdrant_url = core_config.get("qdrant_url", "http://localhost:6333").rstrip("/")
-        self._tei_url = core_config.get("tei_url", "http://localhost:8764").rstrip("/")
 
         # Cache last high-accuracy GPS AI decision per person: {person_id: (decision, datetime)}
         self._last_ha_decision: Dict[str, Tuple[bool, datetime]] = {}
@@ -65,54 +59,22 @@ class PresenceAI:
         # Track last anomaly check timestamp per person
         self._last_anomaly_check: Dict[str, datetime] = {}
 
-        _LOGGER.info(
-            "PresenceAI initialized (qdrant: %s, tei: %s)",
-            self._qdrant_url, self._tei_url
-        )
+        _LOGGER.info("PresenceAI initialized (RAG I/O delegated to sophia_core)")
 
     # =========================================================================
-    # Collection Management
+    # Collection Management (via sophia_core public RAG API)
     # =========================================================================
 
     async def ensure_collections(self) -> None:
-        """Create the three presence RAG collections in Qdrant if missing."""
-        qdrant_url = self._qdrant_url
-        if not qdrant_url:
-            _LOGGER.warning("PresenceAI: Qdrant URL not configured, skipping collection setup")
-            return
-
-        try:
-            import aiohttp
-        except ImportError:
-            _LOGGER.warning("PresenceAI: aiohttp not available, cannot ensure collections")
-            return
-
+        """Create the three presence RAG collections via sophia_core."""
         for collection in REQUIRED_COLLECTIONS:
             try:
-                async with aiohttp.ClientSession() as session:
-                    async with session.get(
-                        f"{qdrant_url}/collections/{collection}",
-                        timeout=aiohttp.ClientTimeout(total=5),
-                    ) as resp:
-                        if resp.status == 200:
-                            _LOGGER.debug("PresenceAI: collection '%s' exists", collection)
-                            continue
-
-                    async with session.put(
-                        f"{qdrant_url}/collections/{collection}",
-                        json={"vectors": {"size": VECTOR_SIZE, "distance": "Cosine"}},
-                        timeout=aiohttp.ClientTimeout(total=10),
-                    ) as resp:
-                        if resp.status in (200, 201):
-                            _LOGGER.info("PresenceAI: created collection '%s'", collection)
-                        else:
-                            body = await resp.text()
-                            _LOGGER.warning(
-                                "PresenceAI: failed to create '%s': HTTP %d %s",
-                                collection, resp.status, body[:200],
-                            )
+                await self._llm.rag_ensure_collection(collection)
             except Exception as err:
-                _LOGGER.warning("PresenceAI: ensure_collections error for '%s': %s", collection, err)
+                _LOGGER.warning(
+                    "PresenceAI: ensure_collections error for '%s': %s",
+                    collection, err,
+                )
 
     async def _store_document(
         self,
@@ -121,52 +83,13 @@ class PresenceAI:
         metadata: Dict[str, Any],
         doc_id: Optional[str] = None,
     ) -> bool:
-        """Embed text via TEI and upsert into a Qdrant collection."""
+        """Thin wrapper around core's rag_upsert to preserve existing call sites."""
         try:
-            vector = await self._llm._embed_query(text)
-            if not vector:
-                _LOGGER.warning(
-                    "PresenceAI: _store_document '%s' - embed returned empty vector, skipping write",
-                    collection,
-                )
-                return False
-
-            qdrant_url = self._qdrant_url
-            if not qdrant_url:
-                return False
-
-            import aiohttp
-            import hashlib
-
-            if not doc_id:
-                doc_id = hashlib.md5(text[:200].encode()).hexdigest()
-
-            # Always derive integer point ID by hashing the doc_id string.
-            # doc_ids like "visit_john_home_..." are NOT valid hex - parsing
-            # them directly with int(doc_id[:8], 16) raises ValueError every time.
-            point_id = int(hashlib.md5(doc_id.encode()).hexdigest()[:8], 16)
-            payload = {**metadata, "text": text, "stored_at": datetime.now().isoformat()}
-
-            async with aiohttp.ClientSession() as session:
-                async with session.put(
-                    f"{qdrant_url}/collections/{collection}/points",
-                    json={"points": [{"id": point_id, "vector": vector, "payload": payload}]},
-                    timeout=aiohttp.ClientTimeout(total=10),
-                ) as resp:
-                    if resp.status in (200, 201):
-                        _LOGGER.debug(
-                            "PresenceAI: stored doc '%s' in '%s'", doc_id[:16], collection
-                        )
-                        return True
-                    body = await resp.text()
-                    _LOGGER.warning(
-                        "PresenceAI: qdrant upsert failed for '%s': HTTP %d %s",
-                        collection, resp.status, body[:200],
-                    )
-                    return False
-
+            return await self._llm.rag_upsert(collection, text, metadata, doc_id)
         except Exception as err:
-            _LOGGER.warning("PresenceAI: _store_document failed for '%s': %s", collection, err)
+            _LOGGER.warning(
+                "PresenceAI: _store_document failed for '%s': %s", collection, err
+            )
             return False
 
     # =========================================================================
